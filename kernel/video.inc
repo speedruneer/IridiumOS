@@ -1,5 +1,5 @@
 [BITS 32]
-[org 0x8900]
+org 0x8900
 ; =====================================
 ; VGA / screen routines
 ; =====================================
@@ -8,6 +8,24 @@
 %define SCREEN_WIDTH 80
 %define SCREEN_HEIGHT 25
 
+%define BLACK          0   ; RGB 0,0,0
+%define BLUE           1   ; RGB 0,0,170
+%define GREEN          2   ; RGB 0,170,0
+%define CYAN           3   ; RGB 0,170,170
+%define RED            4   ; RGB 170,0,0
+%define PURPLE         5   ; RGB 170,0,170
+%define BROWN          6   ; RGB 170,85,0
+%define GRAY           7   ; RGB 170,170,170
+%define DARK_GRAY      8   ; RGB 85,85,85
+%define LIGHT_BLUE     9   ; RGB 85,85,255
+%define LIGHT_GREEN    10  ; RGB 85,255,85
+%define LIGHT_CYAN     11  ; RGB 85,255,255
+%define LIGHT_RED      12  ; RGB 255,85,85
+%define LIGHT_PURPLE   13  ; RGB 255,85,255
+%define YELLOW         14  ; RGB 255,255,85
+%define WHITE          15  ; RGB 255,255,255
+%define FOREGROUND     1
+%define BACKGROUND     10
 ; -------------------------------------
 ; setCharScreen: write a single char+color at AL=col, AH=row, BL=char, BH=color
 ; -------------------------------------
@@ -60,10 +78,10 @@ setCharScreen:
     mov ah, %1                  ; color
     movzx eax, ax                 ; combine char+color in EAX for 32-bit writes
 
-.clear_loop:
+%%.clear_loop:
     mov [edi], ax               ; write char+color
     add edi, 2                   ; next cell
-    loop .clear_loop
+    loop %%.clear_loop
 
     popad
 %endmacro
@@ -83,17 +101,17 @@ setCharScreen:
     mov ah, %2              ; row
     mov si, %3              ; pointer to string
 
-.next_char:
+%%.next_char:
     lodsb                   ; load next byte from string into AL temporarily
     cmp al, 0
-    je .done
+    je %%.done
     mov bl, al              ; character for setCharScreen
     mov al, cl
     mov bh, %4              ; color for setCharScreen
     call setCharScreen
     inc cl                  ; move to next column
-    jmp .next_char
+    jmp %%.next_char
 
-.done:
+%%.done:
     popad
 %endmacro
