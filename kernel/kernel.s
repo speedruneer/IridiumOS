@@ -12,6 +12,7 @@ kernel:
 clearScreen 0x0F
 printString 0, 0, KRN_LOADED_STR, BLACK*BACKGROUND+RED*FOREGROUND
 
+ERR ERR_KERNEL_DIED
 
 hang:
     jmp hang
