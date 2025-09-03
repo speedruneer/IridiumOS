@@ -1,6 +1,9 @@
+[BITS 32]
+org 0x8900
 jmp kernel
-%include "video.s"
+
+%include "video.inc"
+
 kernel:
 
-mov al, 0x32
-call errorFunc
+setChar 2, 2, 'E', 0x0F
