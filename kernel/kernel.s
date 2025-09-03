@@ -2,16 +2,12 @@
 org 0x8900
 jmp kernel
 
-%include "vga.inc"
+%include "video.inc"
 
 kernel:
 
-;clearScreen 0x0F
-;setChar 0, 0, 'E', 0x0F
-mov al, 13h
-call switchRenderingMode
-mov cl, 0x1
-call VGA_ClearScreen
+clearScreen 0x0F
+setChar 0, 0, 'E', 0x0F
 
 hang:
     jmp hang
