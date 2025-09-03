@@ -1,0 +1,9 @@
+%define STATUS_REGISTER_A              0x3F0
+%define STATUS_REGISTER_B              0x3F1
+%define DIGITAL_OUTPUT_REGISTER        0x3F2
+%define TAPE_DRIVE_REGISTER            0x3F3
+%define MAIN_STATUS_REGISTER           0x3F4
+%define DATARATE_SELECT_REGISTER       0x3F4
+%define DATA_FIFO                      0x3F5
+%define DIGITAL_INPUT_REGISTER         0x3F7
+%define CONFIGURATION_CONTROL_REGISTER 0x3F7
