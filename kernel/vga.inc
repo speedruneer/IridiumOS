@@ -1,62 +1,72 @@
 [BITS 32]
+
 %define VGA_VIDEO_MEMORY 0xA0000
-%define TXT_VIDEO_MEMORY 0xB8000
-%define SCREEN_HEIGHT    480
-%define SCREEN_WIDTH     640
+%define SCREEN_WIDTH 320
+%define SCREEN_HEIGHT 200
 
-vgapixelbytecount: db 1
+; ==========================
+; Clear screen (320x200x256)
+; Input: CL = color
+; ==========================
+VGA_ClearScreen:
+    pushad
+    mov edi, VGA_VIDEO_MEMORY
+    mov al, cl
+    mov ecx, SCREEN_WIDTH * SCREEN_HEIGHT
+    rep stosb
+    popad
+    ret
 
-; ax = X
-; bx = Y
-; cl = color
+; ==========================
+; Plot a pixel safely
+; Input: AX = X, BX = Y, CL = color
+; ==========================
 VGA_PLOT_PIXEL:
+    ; bounds check
+    cmp ax, SCREEN_WIDTH
+    jae .skip
+    cmp bx, SCREEN_HEIGHT
+    jae .skip
+
     mov edi, VGA_VIDEO_MEMORY
     movzx eax, ax
     movzx ebx, bx
     imul ebx, SCREEN_WIDTH
-    imul ebx, vgapixelbytecount
-    add ebx, eax
-    add edi, ebx
+    add eax, ebx
+    add edi, eax
     mov [edi], cl
+.skip:
     ret
 
-; ==============================
-; Switch to real mode, call BIOS, back to PM
-; ==============================
-
-; ax = mode to set (e.g., 0x13 = 320x200x256, 0x03 = 80x25 text)
-switchVgaOrTxt:
+; ==========================
+; Switch to VGA or Text mode
+; Input: AL = mode (0x03 text, 0x13 320x200x256)
+; ==========================
+switchRenderingMode:
     cli
-    ; --- save registers ---
     pushad
     pushfd
 
-    ; --- disable interrupts ---
-    mov ebx, eax
-    mov eax, cr0
-    and eax, 0xFFFFFFFE  ; clear PE bit to switch to real mode
-    mov cr0, eax
-    mov eax, ebx
+    ; temporary real-mode stack at 0x9000
+    mov ax, 0x0000
+    mov ss, ax
+    mov esp, 0x90000
 
-    ; --- far jump to real mode code ---
+    ; leave protected mode
+    mov eax, cr0
+    and eax, 0xFFFFFFFE
+    mov cr0, eax
+
+    ; far jump to 16-bit code
     jmp 0x0000:real_mode_entry
 
 [BITS 16]
 real_mode_entry:
-    mov bx, ax
-    mov ax, 0x0000
-    mov ds, ax
-    mov es, ax
-    mov ss, ax
-    mov sp, 0x7C00
-    mov ax, bx
-
-    ; call BIOS to set video mode
+    ; BIOS call to set mode
     mov ah, 0x00
-    int 0x10             ; mode in AL already set by caller
+    int 0x10             ; AL already has desired mode
 
-    ; --- switch back to protected mode ---
-    cli
+    ; --- setup GDT to return to protected mode ---
 gdt_start:
     dq 0                    ; null descriptor
 
@@ -81,33 +91,17 @@ gdt_descriptor:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
-    lgdt [gdt_descriptor] ; reload GDT
+    lgdt [gdt_descriptor]
     mov eax, cr0
-    or eax, 1             ; set PE bit
+    or eax, 1
     mov cr0, eax
 
-    ; far jump into protected mode
     jmp 0x08:pm_resume
 
 [BITS 32]
 pm_resume:
-    ; --- restore registers ---
     popfd
     popad
+    mov esp, 0x90000
     sti
-    ret
-
-; ======================================
-; VGA Clear Screen (320x200, 256 colors)
-; Input: CL = color (0-255)
-; ======================================
-VGA_ClearScreen:
-    pushad                   ; save all general-purpose registers
-
-    mov edi, 0xA0000         ; VGA framebuffer
-    mov al, cl               ; color to fill
-    mov ecx, 320*200         ; number of pixels
-    rep stosb                ; fill entire screen
-
-    popad                    ; restore registers
     ret
