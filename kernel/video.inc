@@ -15,7 +15,7 @@ setCharScreen:
     pushad
 
     ; Compute offset in characters
-    mov edi, 0xb8000        ; start of VGA
+    mov edi, VIDEO_MEMORY        ; start of VGA
     movzx ecx, ah                ; row
     imul ecx, SCREEN_WIDTH
     movzx eax, al
@@ -65,5 +65,35 @@ setCharScreen:
     add edi, 2                   ; next cell
     loop .clear_loop
 
+    popad
+%endmacro
+
+; -------------------------------------
+; printString macro
+; Inputs:
+;   %1 = column (x)
+;   %2 = row (y)
+;   %3 = pointer to null-terminated string
+;   %4 = color (8-bit)
+; -------------------------------------
+%macro printString 4
+    pushad                  ; save registers
+
+    mov cl, %1              ; column
+    mov ah, %2              ; row
+    mov si, %3              ; pointer to string
+
+.next_char:
+    lodsb                   ; load next byte from string into AL temporarily
+    cmp al, 0
+    je .done
+    mov bl, al              ; character for setCharScreen
+    mov al, cl
+    mov bh, %4              ; color for setCharScreen
+    call setCharScreen
+    inc cl                  ; move to next column
+    jmp .next_char
+
+.done:
     popad
 %endmacro

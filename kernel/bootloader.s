@@ -85,18 +85,50 @@ pm_entry:
 ; --------------------------
 [BITS 16]
 disk_error:
-    mov al, 'E'
+    ; Print "Error "
+    mov si, error_msg
+.print_loop:
+    lodsb                  ; load byte from DS:SI into AL
+    cmp al, 0
+    je .print_code          ; end of string
     mov ah, 0x0E
     int 0x10
-    mov al, 'r'
-    int 0x10
-    mov al, 'r'
-    int 0x10
-    mov al, 'o'
-    int 0x10
-    mov al, 'r'
-    int 0x10
+    jmp .print_loop
+
+.print_code:
+    ; Print AH error code as hex (two characters)
+    mov al, ah              ; error code in AH from INT 13h
+    call print_hex_byte
     hlt
+
+; --------------------------
+; Helper: print 1 byte in hex
+; --------------------------
+print_hex_byte:
+    push ax
+    mov ah, 0
+    mov bl, al
+    shr al, 4
+    call print_hex_nibble
+    mov al, bl
+    and al, 0x0F
+    call print_hex_nibble
+    pop ax
+    ret
+
+print_hex_nibble:
+    cmp al, 0x0A
+    jl .digit
+    add al, 'A' - 10
+    jmp .done
+.digit:
+    add al, '0'
+.done:
+    mov ah, 0x0E
+    int 0x10
+    ret
+
+error_msg db 'Error ', 0
 
 ; --------------------------
 ; Boot sector padding
