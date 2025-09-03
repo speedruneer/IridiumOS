@@ -6,4 +6,7 @@ jmp kernel
 
 kernel:
 
-setChar 2, 2, 'E', 0x0F
+clearScreen 0x0F
+setChar 0, 0, 'E', 0x0F
+hang:
+jmp hang

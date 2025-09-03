@@ -1,5 +1,5 @@
 [BITS 16]
-ORG 0x7C00                ; BIOS loads bootloader here
+[ORG 0x7C00]                ; BIOS loads bootloader here
 
 start:
     cli
@@ -7,26 +7,30 @@ start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 0x7C00         ; stack grows down from here
+    mov sp, 0x7C00          ; stack grows down from here
 
     ; --------------------------
-    ; Load kernel (2 sectors -> 1024 bytes) to 0x0000:0x8900
+    ; Load kernel (2 sectors) to 0x0000:0x8900
     ; --------------------------
-    mov bx, 0x8900         ; offset into ES segment (which is 0)
-    mov ah, 0x02           ; INT 13h: function 02h = read sectors
-    mov al, 2              ; number of sectors to read
-    mov ch, 0              ; cylinder
-    mov cl, 2              ; sector number (start at sector 2)
-    mov dh, 0              ; head
-    mov dl, 0              ; drive (0 = first floppy, if using hdd use 0x80)
+    mov bx, 0x8900          ; offset into ES
+    mov ah, 0x02            ; INT 13h function 02h = read sectors
+    mov al, 2               ; number of sectors
+    mov ch, 0               ; cylinder
+    mov cl, 2               ; sector 2
+    mov dh, 0               ; head
+    mov dl, 0x80            ; first HDD
     int 0x13
-    jc disk_error          ; if CF set → error
-
+    jc disk_error           ; jump if CF set
+    mov ah, 01h
+    mov ch, 3Fh
+    int 10h
+    jmp e
+    
     ; --------------------------
     ; Setup GDT
     ; --------------------------
 gdt_start:
-    dq 0                   ; Null descriptor
+    dq 0                    ; null descriptor
 
     ; Code segment: base=0, limit=4GB
     dw 0xFFFF
@@ -49,7 +53,7 @@ gdt_descriptor:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
-    ; Load GDT
+e:
     lgdt [gdt_descriptor]
 
     ; Enable protected mode
@@ -71,12 +75,27 @@ pm_entry:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, 0x90000       ; set up a stack somewhere safe
+    mov esp, 0x90000         ; stack somewhere safe
 
-    ; Jump to loaded kernel at 0x00008900
+    ; Jump to loaded kernel
     jmp 0x08:0x00008900
 
+; --------------------------
+; Disk error handler
+; --------------------------
+[BITS 16]
 disk_error:
+    mov al, 'E'
+    mov ah, 0x0E
+    int 0x10
+    mov al, 'r'
+    int 0x10
+    mov al, 'r'
+    int 0x10
+    mov al, 'o'
+    int 0x10
+    mov al, 'r'
+    int 0x10
     hlt
 
 ; --------------------------
