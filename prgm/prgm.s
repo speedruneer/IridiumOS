@@ -1,3 +1,8 @@
+; =====================================
+; Copyright (C) 2025 Speedruneer/SpeedruneerOff
+; All rights reserved
+; Distributed for hobby purposes only
+; =====================================
 %define CURRENT_VERSION 1
 ; eax = address of file in ram
 ; Error code in bl, 0 = older version, 1 = newer version, 2 = broken header FF = fine

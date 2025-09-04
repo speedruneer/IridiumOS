@@ -1,3 +1,9 @@
+; =====================================
+; Copyright (C) 2025 Speedruneer/SpeedruneerOff
+; All rights reserved
+; Distributed for hobby purposes only
+; =====================================
+
 ; This file is fine i think
 
 [BITS 32]

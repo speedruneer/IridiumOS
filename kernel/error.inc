@@ -1,3 +1,9 @@
+; =====================================
+; Copyright (C) 2025 Speedruneer/SpeedruneerOff
+; All rights reserved
+; Distributed for hobby purposes only
+; =====================================
+
 ; This is errors, i hope you see none, but i guarantuee nothing
 
 [BITS 32]
@@ -114,3 +120,10 @@ check_overflow_add:
 .overflow:
     ERR ERR_KERNEL_DIED
     ret
+
+%macro CHECKERR 0
+    call check_div_zero
+    call check_overflow_add
+    call check_segments
+    call check_stack
+%endmacro

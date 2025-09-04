@@ -1,4 +1,10 @@
-; I don't recommend reading this, it's kinda horrendous
+; =====================================
+; Copyright (C) 2025 Speedruneer/SpeedruneerOff
+; All rights reserved
+; Distributed for hobby purposes only
+; =====================================
+
+; Bootloader
 
 [BITS 16]
 [ORG 0x7C00]                ; BIOS loads bootloader here
