@@ -4,7 +4,6 @@
 ; Distributed for hobby purposes only
 ; =====================================
 
-; This is errors, i hope you see none, but i guarantuee nothing
 
 [BITS 32]
 ; =====================================
@@ -61,9 +60,6 @@ kernel_panic:
 .halt:
     jmp .halt
 
-    popad
-    ret
-
 panic_msg: db "IridiumOS crashed! Reason:", 0
 
 ; -------------------------
@@ -82,7 +78,6 @@ check_stack:
     ret
 .overflow:
     ERR ERR_STACK_OVERFLOW
-    ret
 
 ; Example: check that DS, ES, FS, GS are valid GDT selectors
 check_segments:
@@ -101,7 +96,6 @@ check_segments:
     ret
 .bad:
     ERR ERR_MEM_CORRUPT   ; use a generic memory error
-    ret
 
 ; IN: EAX = numerator, EBX = denominator
 check_div_zero:
@@ -110,7 +104,6 @@ check_div_zero:
     ret
 .div_zero:
     ERR ERR_PROG_ILLEGAL_INSTR
-    ret
 
 ; Example: add two signed values in EAX, EBX
 check_overflow_add:
@@ -119,7 +112,6 @@ check_overflow_add:
     ret
 .overflow:
     ERR ERR_KERNEL_DIED
-    ret
 
 %macro CHECKERR 0
     call check_div_zero

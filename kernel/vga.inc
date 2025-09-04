@@ -7,33 +7,33 @@
 [BITS 32]
 org 0x8900
 
-VGA_WIDTH equ 320
+VGA_WIDTH  equ 320
 VGA_HEIGHT equ 200
-VGA_FB    equ 0xA0000   ; linear framebuffer for mode 13h
+VGA_FB     equ 0xA0000   ; linear framebuffer for mode 13h
 
 ; ============================
-; Set pixel at (x, y) in color
-; Usage: setPixel x, y, color
+; Pixel plotter
+; IN: ecx = x, edx = y, al = color
 ; ============================
+setPixelFunc:
+    cmp ecx, VGA_WIDTH
+    jae .ret
+    cmp edx, VGA_HEIGHT
+    jae .ret
+
+    imul edx, VGA_WIDTH    ; y * width
+    add edx, ecx           ; + x
+    mov edi, VGA_FB
+    add edi, edx           ; address = VGA_FB + y*width + x
+    mov [edi], al
+.ret:
+    ret
+
 %macro setPixel 3
-    mov eax, %2            ; y
-    imul eax, VGA_WIDTH    ; y * 320
-    add eax, %1            ; + x
-    mov edx, VGA_FB        ; framebuffer base
-    add edx, eax
+    pushad
+    mov ecx, %1
+    mov edx, %2
     mov al, %3
-    mov [edx], al
-%endmacro
-
-; ============================
-; Set pixel with custom framebuffer
-; Usage: setPixelCustomFB framebuffer_ptr, x, y, color
-; ============================
-%macro setPixelCustomFB 4
-    mov eax, %3            ; y
-    imul eax, VGA_WIDTH    ; y * 320
-    add eax, %2            ; + x
-    add eax, %1            ; framebuffer ptr
-    mov al, %4
-    mov [eax], al
+    call setPixelFunc
+    popad
 %endmacro

@@ -17,7 +17,7 @@ start:
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 0x7C00          ; stack grows down from here
+    mov sp, 0x7C00-2        ; stack grows down from here
 
     ; --------------------------
     ; Load kernel (2 sectors) to 0x0000:0x8900
@@ -31,15 +31,15 @@ start:
     mov dl, 0x80            ; first HDD
     int 0x13
     jc disk_error           ; jump if CF set
-%if vga
-    mov ah, 0
-    mov al, 13h
-    int 10h
-%else
-    mov ah, 01h
-    mov ch, 3Fh
-    int 10h
-%endif
+    %if vga = 1
+        mov ah, 0
+        mov al, 13h
+        int 10h
+    %else
+        mov ah, 01h
+        mov ch, 3Fh
+        int 10h
+    %endif
 
     jmp e
 
