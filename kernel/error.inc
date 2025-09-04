@@ -1,7 +1,12 @@
+; This is errors, i hope you see none, but i guarantuee nothing
+
 [BITS 32]
 ; =====================================
 ; error.inc — IridiumOS kernel errors (string-based)
 ; =====================================
+
+%define STACK_TOP    0x90000       ; where you start the stack (grows down)
+%define STACK_BOTTOM 0x8F000       ; arbitrary lower bound for stack safety
 
 ; -------------------------
 ; Error messages (labels)
@@ -27,6 +32,9 @@ ERR_PROG_RETURNED:      db "Program returned unexpectedly", 0
 ERR_PROG_ILLEGAL_INSTR: db "Illegal instruction in program", 0
 ERR_PROG_ACCESS_VIOLATION: db "Program access violation", 0
 
+ERR_PROG_OLD:           db "This program is an invalid/older version", 0
+ERR_PROG_NEW:           db "This program is an invalid/newer version", 0
+ERR_PROG_BRK:           db "This program has broken headers or isn't prgm", 0
 ; -------------------------
 ; kernel_panic
 ; IN: ESI = pointer to error string
@@ -59,3 +67,50 @@ panic_msg: db "IridiumOS crashed! Reason:", 0
     mov esi, %1          ; load pointer to string into ESI
     call kernel_panic
 %endmacro
+
+check_stack:
+    cmp esp, STACK_BOTTOM
+    jb .overflow
+    cmp esp, STACK_TOP
+    ja .overflow
+    ret
+.overflow:
+    ERR ERR_STACK_OVERFLOW
+    ret
+
+; Example: check that DS, ES, FS, GS are valid GDT selectors
+check_segments:
+    mov ax, ds
+    test ax, 0xFFFC      ; mask low 2 bits
+    jz .bad
+    mov ax, es
+    test ax, 0xFFFC
+    jz .bad
+    mov ax, fs
+    test ax, 0xFFFC
+    jz .bad
+    mov ax, gs
+    test ax, 0xFFFC
+    jz .bad
+    ret
+.bad:
+    ERR ERR_MEM_CORRUPT   ; use a generic memory error
+    ret
+
+; IN: EAX = numerator, EBX = denominator
+check_div_zero:
+    test ebx, ebx
+    jz .div_zero
+    ret
+.div_zero:
+    ERR ERR_PROG_ILLEGAL_INSTR
+    ret
+
+; Example: add two signed values in EAX, EBX
+check_overflow_add:
+    add eax, ebx
+    jo .overflow
+    ret
+.overflow:
+    ERR ERR_KERNEL_DIED
+    ret

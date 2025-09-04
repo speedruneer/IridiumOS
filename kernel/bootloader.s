@@ -1,3 +1,5 @@
+; I don't recommend reading this, it's kinda horrendous
+
 [BITS 16]
 [ORG 0x7C00]                ; BIOS loads bootloader here
 
