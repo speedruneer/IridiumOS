@@ -9,7 +9,7 @@
 [BITS 32]
 org 0x8900
 ; =====================================
-; VGA / screen routines
+; TXT Mode / screen routines
 ; =====================================
 
 %define VIDEO_MEMORY 0xb8000

@@ -6,6 +6,8 @@
 
 ; Bootloader
 
+%define vga 1
+
 [BITS 16]
 [ORG 0x7C00]                ; BIOS loads bootloader here
 
@@ -29,9 +31,16 @@ start:
     mov dl, 0x80            ; first HDD
     int 0x13
     jc disk_error           ; jump if CF set
+%if vga
+    mov ah, 0
+    mov al, 13h
+    int 10h
+%else
     mov ah, 01h
     mov ch, 3Fh
     int 10h
+%endif
+
     jmp e
 
     ; --------------------------
@@ -86,6 +95,7 @@ pm_entry:
     mov esp, 0x90000         ; stack somewhere safe
 
     ; Jump to loaded kernel
+    mov al, vga
     jmp 0x08:0x00008900
 
 ; --------------------------
